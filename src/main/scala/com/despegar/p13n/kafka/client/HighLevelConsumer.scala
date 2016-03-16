@@ -17,23 +17,18 @@ object HighLevelConsumer extends App {
   val topic = "testTopic"
   val threads = 3
 
-  val consumer = new HighLevelConsumer(zookeeper, groupId, topic)
-  consumer.run(threads)
+  val consumer = Consumer.createJavaConsumerConnector(createConsumerConfig(zookeeper, groupId))
+  var executor: ExecutorService = _
+  startup(threads)
 
   try {
     Thread.sleep(10000);
   } catch {
     case ie: InterruptedException =>
   }
-  consumer.shutdown
-}
-
-class HighLevelConsumer(zookeeper: String, groupId: String, topic: String) {
-
-  val consumer = Consumer.createJavaConsumerConnector(createConsumerConfig(zookeeper, groupId))
-  var executor: ExecutorService = _
-
-  def run(numThreads: Integer) {
+  shutdown
+  
+  def startup(numThreads: Integer) {
     println(s"Starting consumer with $numThreads threads")
     val topicCountMap = Map(topic -> numThreads)
     val consumerMap = consumer.createMessageStreams(topicCountMap.asJava)
@@ -45,7 +40,7 @@ class HighLevelConsumer(zookeeper: String, groupId: String, topic: String) {
     // create an object to consume the messages
     var threadNumber = 0
     for (stream <- streams) {
-      executor.submit(new ConsumerRunable(stream, threadNumber))
+      executor.submit(new HighLevelConsumer(stream, threadNumber))
       threadNumber += 1
     }
   }
@@ -72,10 +67,9 @@ class HighLevelConsumer(zookeeper: String, groupId: String, topic: String) {
     props.put("auto.commit.interval.ms", "1000")
     new ConsumerConfig(props)
   }
-
 }
 
-class ConsumerRunable(stream: KafkaStream[Array[Byte], Array[Byte]], threadNumber: Int) extends Runnable {
+class HighLevelConsumer(stream: KafkaStream[Array[Byte], Array[Byte]], threadNumber: Int) extends Runnable {
   override def run {
     val it: ConsumerIterator[Array[Byte], Array[Byte]] = stream.iterator()
     for (kafkaMessage <- it) {
