@@ -15,3 +15,21 @@ project/plugins/project/
 # Scala-IDE specific
 .scala_dependencies
 .worksheet
+
+logs
+project/project
+project/target
+tmp
+.history
+/.classpath
+/.project
+/.settings
+/.target
+/RUNNING_PID
+bin
+*.out
+.worksheet
+app/worksheet
+sass/.sass-cache
+.cache-main
+.cache-tests
