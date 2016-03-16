@@ -73,7 +73,7 @@ class HighLevelConsumer(stream: KafkaStream[Array[Byte], Array[Byte]], threadNum
   override def run {
     val it: ConsumerIterator[Array[Byte], Array[Byte]] = stream.iterator()
     for (kafkaMessage <- it) {
-      println(s"Thread $threadNumber: ${new String(kafkaMessage.message())}")
+      println(s"Thread $threadNumber: ${new String(kafkaMessage.message())}, topic: ${kafkaMessage.topic}, partition: ${kafkaMessage.partition}")
     }
 
     println(s"Shutting down Thread $threadNumber")
