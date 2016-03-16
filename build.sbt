@@ -16,5 +16,5 @@ resolvers ++= Seq(
 
 libraryDependencies ++= List(
         "org.scalatest" %% "scalatest" % "2.2.4" % "test",
-        "org.apache.kafka" %% "kafka" % "0.8.2.2"
+        "org.apache.kafka" %% "kafka" % "0.9.0.1"
         )

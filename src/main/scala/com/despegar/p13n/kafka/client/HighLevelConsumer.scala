@@ -24,7 +24,7 @@ object HighLevelConsumer extends App {
   try {
     Thread.sleep(10000);
   } catch {
-    case ie: InterruptedException =>
+    case ie: InterruptedException => println("Interrupted application")
   }
   shutdown
   
