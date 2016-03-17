@@ -30,7 +30,7 @@ class LowLevelConsumer {
   def run(maxReads: Long, consumerData: ConsumerData) {
     findPartition(consumerData) match {
       case Some(partition) => runWithPartition(maxReads, partition, consumerData)
-      case None => println("Can't find metadata for Topic and Partition. Exiting")
+      case None            => println("Can't find metadata for Topic and Partition. Exiting")
     }
   }
 
@@ -41,22 +41,22 @@ class LowLevelConsumer {
       case Some(leader) =>
         var leadBroker: Option[Broker] = Some(Broker(leader.host, leader.port))
         var consumer = new SimpleConsumer(leader.host, leader.port, 100000, 64 * 1024, consumerData.groupId)
-        var offset = lastOffset(consumer, consumerData, OffsetRequest.EarliestTime)
-       
+        var readOffset = lastOffset(consumer, consumerData, OffsetRequest.EarliestTime)
+
         (1l to maxReads).foldLeft(0) { (numErrors, _) =>
-          if(numErrors <= 5) {
+          if (numErrors <= 5) {
             if (consumer == null) consumer = new SimpleConsumer(leadBroker.fold("")(_.host), leadBroker.fold(0)(_.port), 100000, 64 * 1024, consumerData.groupId)
             val fetchRequest = new FetchRequestBuilder()
               .clientId(consumerData.groupId)
               // Note: this fetchSize of 100000 might need to be increased if large batches are written to Kafka
-              .addFetch(consumerData.topic, consumerData.partition, offset.getOrElse(0), 100000)
+              .addFetch(consumerData.topic, consumerData.partition, readOffset.getOrElse(0), 100000)
               .build()
             val fetchResponse = consumer.fetch(fetchRequest)
             if (fetchResponse.hasError) {
               val code = fetchResponse.errorCode(consumerData.topic, consumerData.partition)
               println(s"Error fetching data from the Broker: $leadBroker Reason: $code")
-              if(code == ErrorMapping.OffsetOutOfRangeCode) {
-                offset = lastOffset(consumer, consumerData, OffsetRequest.LatestTime)
+              if (code == ErrorMapping.OffsetOutOfRangeCode) {
+                readOffset = lastOffset(consumer, consumerData, OffsetRequest.LatestTime)
               } else {
                 consumer.close()
                 consumer = null
@@ -65,30 +65,30 @@ class LowLevelConsumer {
               numErrors + 1
             } else {
               var numRead = 0
-              fetchResponse.messageSet(consumerData.topic, consumerData.partition).foreach { message => 
+              fetchResponse.messageSet(consumerData.topic, consumerData.partition).foreach { message =>
                 var currentOffset = message.offset
-                if(currentOffset < offset.getOrElse(0l)) {
-                  println("Found an old offset: $currentOffset Expecting: $readOffset")
+                if (currentOffset < readOffset.getOrElse(0l)) {
+                  println(s"Found an old offset: $currentOffset Expecting: $readOffset")
                 } else {
-                  offset = Some(message.nextOffset)
+                  readOffset = Some(message.nextOffset)
                   val payload = message.message.payload
                   val bytes = new Array[Byte](payload.remaining())
                   payload.get(bytes)
-                  println(String.valueOf(message.offset) + ": " + new String( bytes, Charset.forName("UTF-8") ))
+                  println(String.valueOf(message.offset) + ": " + new String(bytes, Charset.forName("UTF-8")))
                   numRead += 1
                   maxReads = maxReads - 1
                 }
               }
-              if(numRead == 0) {
+              if (numRead == 0) {
                 Thread.sleep(1000)
               }
               0
             }
-            
+
           } else numErrors
         }
-        
-        if(consumer != null) consumer.close()
+
+        if (consumer != null) consumer.close()
     }
   }
 
