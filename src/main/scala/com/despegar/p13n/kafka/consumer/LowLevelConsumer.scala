@@ -1,4 +1,4 @@
-package com.despegar.p13n.kafka.client
+package com.despegar.p13n.kafka.consumer
 
 import kafka.consumer.SimpleConsumer
 import kafka.api.TopicMetadataRequest

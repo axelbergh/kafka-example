@@ -1,6 +1,6 @@
 organization := "com.despegar.p13n"
 
-name := "kafka-client-example"
+name := "kafka-example"
 
 version := "0.0.1-SNAPSHOT"
 

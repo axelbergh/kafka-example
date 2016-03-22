@@ -1,4 +1,4 @@
-package com.despegar.p13n.kafka.client
+package com.despegar.p13n.kafka.consumer
 
 import java.util.Properties
 import org.apache.kafka.clients.consumer.KafkaConsumer
