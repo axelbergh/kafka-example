@@ -10,6 +10,9 @@ import collection.JavaConversions._
 import java.util.concurrent.Executors
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
+import scala.io.StdIn
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 
 object HighLevelConsumer extends App {
   val zookeeper = "localhost:3181,localhost:4181,localhost:2181/p13n-kafka"
@@ -18,14 +21,16 @@ object HighLevelConsumer extends App {
   val threads = 3
 
   val consumer = Consumer.createJavaConsumerConnector(createConsumerConfig(zookeeper, groupId))
-  var executor: ExecutorService = _
+  val executor: ExecutorService = Executors.newFixedThreadPool(threads)
+  implicit val context = ExecutionContext.fromExecutor(executor)
   startup(threads)
 
   try {
-    Thread.sleep(10000);
+    val line = StdIn.readLine
+    println("Exiting...")
   } catch {
     case ie: InterruptedException => println("Interrupted application")
-  }
+  } 
   shutdown
   
   def startup(numThreads: Integer) {
@@ -34,13 +39,13 @@ object HighLevelConsumer extends App {
     val consumerMap = consumer.createMessageStreams(topicCountMap.asJava)
     val streams = consumerMap.get(topic)
 
-    // launch all the threads
-    executor = Executors.newFixedThreadPool(numThreads)
-
     // create an object to consume the messages
     var threadNumber = 0
     for (stream <- streams) {
-      executor.submit(new HighLevelConsumer(stream, threadNumber))
+//      executor.submit(new HighLevelConsumer(stream, threadNumber))
+      Future {
+        new HighLevelConsumer(stream, threadNumber).run()
+      }
       threadNumber += 1
     }
   }
