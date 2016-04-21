@@ -12,13 +12,14 @@ object NewConsumer extends App {
   props.put("enable.auto.commit", "true")
   props.put("auto.commit.interval.ms", "1000")
   props.put("session.timeout.ms", "30000")
-  props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+  props.put("key.deserializer", "org.apache.kafka.common.serialization.IntegerDeserializer")
   props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-  val consumer: KafkaConsumer[String, String] = new KafkaConsumer(props)
+  val consumer: KafkaConsumer[Int, String] = new KafkaConsumer(props)
   consumer.subscribe(List("testTopic"))
   while (true) {
-    val records: ConsumerRecords[String, String] = consumer.poll(1)
-    for (record <- records)
+    val records: ConsumerRecords[Int, String] = consumer.poll(1000)
+    for (record <- records) {
       println(s"offset = ${record.offset()}, key = ${record.key()}, value = ${record.value()}, partition = ${record.partition()}")
+    }
   }
 }
