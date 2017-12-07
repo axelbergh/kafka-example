@@ -4,7 +4,7 @@ name := "kafka-example"
 
 version := "0.0.1-SNAPSHOT"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.2"
 
 resolvers ++= Seq(
     "Mariot Chauvin" at "http://mchv.me/repository",
@@ -15,8 +15,7 @@ resolvers ++= Seq(
     )
 
 libraryDependencies ++= List(
-        "org.scalatest" %% "scalatest" % "2.2.4" % "test",
-        "org.apache.kafka" %% "kafka" % "0.9.0.1" withSources() withJavadoc()
+        "org.apache.kafka" % "kafka_2.11" % "0.10.1.0" withSources() withJavadoc()
         )
         
 EclipseKeys.withSource := true
